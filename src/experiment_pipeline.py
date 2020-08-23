@@ -1,9 +1,11 @@
 from configuration_file import *
+import pandas as pd
+
 
 from src.steps import ingesting_data, pre_processing, splitting_data, modeling, saving_results
 
-# pd.set_option('display.max_columns', None)
-# pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
 
 ingested_data, experiment_config = ingesting_data(file_path)
 

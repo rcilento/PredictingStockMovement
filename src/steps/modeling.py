@@ -1,13 +1,14 @@
 from sklearn.metrics import roc_auc_score, confusion_matrix, f1_score, accuracy_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import LinearSVC
-
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 
 def modeling(X_train, y_train_df, X_test, y_test_df):
 
     results_dict = {
         "SVM": {
-            "model": LinearSVC(random_state=0, max_iter=1000),
+            "model": Pipeline([('scaler', StandardScaler()), ('model', LinearSVC(random_state=0, max_iter=1000))]),
             "F1": [],
             "ACCURACY": [],
 
@@ -15,7 +16,7 @@ def modeling(X_train, y_train_df, X_test, y_test_df):
             "RECALL": []
         },
         "RANDOM FOREST": {
-            "model": RandomForestClassifier(n_estimators=1001, random_state=0, min_samples_leaf=300),
+            "model": Pipeline([('scaler', StandardScaler()), ('model', RandomForestClassifier(n_estimators=1001, random_state=0, min_samples_leaf=300))]),
             "AUC": [],
             "F1": [],
             "ACCURACY": [],

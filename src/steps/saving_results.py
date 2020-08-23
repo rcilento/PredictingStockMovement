@@ -51,16 +51,15 @@ def saving_results(experiment_name, response_period_experiment_list, model_resul
         f.write(f"{model_name} Configuration {str(model_results_dict[model_name]['model'])}\n")
         f.close()
 
-        print(model_results_dict)
 
         fig1, ax1 = plt.subplots()
         fig2, ax2 = plt.subplots()
 
         if "AUC" in list(model_results_dict[model_name].keys()):
-            ax1.plot(model_results_dict, model_results_dict[model_name]["AUC"], label="AUC", color='olive')
+            ax1.plot(response_period_experiment_list, model_results_dict[model_name]["AUC"], label="AUC", color='olive')
 
-        if "ACCURACY" in list(model_results_dict[model_name].values()):
-            ax1.plot(model_results_dict, model_results_dict[model_name]["ACCURACY"], label="Accuracy", color='orange')
+        if "ACCURACY" in list(model_results_dict[model_name].keys()):
+            ax1.plot(response_period_experiment_list, model_results_dict[model_name]["ACCURACY"], label="Accuracy", color='orange')
 
         ax1.set(
             xlabel='Quantidade de dias Seguintes os quais a Variável resposta foi avaliada',

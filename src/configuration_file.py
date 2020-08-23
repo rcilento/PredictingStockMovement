@@ -62,11 +62,11 @@ param_dict = {
 
 file_path = "data/BVSP.csv"
 
-response_period_experiment_list = list(range(1, 50))
+response_period_experiment_list = list(range(1, 101))
 
 filter_date_greater_than = "1998-01-01"
 test_period = "2016-01-01"
 
 pearson_r_threshold = 0.8
 
-experiment_name = "01"
+experiment_name = "02"
