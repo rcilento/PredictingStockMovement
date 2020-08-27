@@ -1,4 +1,4 @@
-from utils import StockOperations
+from utils import StockOperations, matrix_correlation_filter
 import numpy as np
 
 
@@ -42,12 +42,18 @@ def pre_processing(ingested_data, filter_date_greater_than, param_dict, response
     experiment_config["describe_dataframe_after_calculations"] = stock.describe()
 
     # Filtrando features linearmente correlacionadas (redundantes)
-    corr_matrix = stock[features_cols].corr("pearson").abs()
-    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
-    # Encontrando o index da variável a qual o valor de r é maior que o threshold
-    to_drop = [column for column in upper.columns if any(upper[column] > pearson_r_threshold)]
+    features = matrix_correlation_filter(stock[features_cols], y=None, method="pearson", min_period=1, threshold=0.8)
+
+    to_drop = [col for col in features_cols if col not in features.columns]
+
+    stock = stock.drop(to_drop, axis=1)
+
+    #corr_matrix = stock[features_cols].corr("pearson").abs()
+    #upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
+    ## Encontrando o index da variável a qual o valor de r é maior que o threshold
+    #to_drop = [column for column in upper.columns if any(upper[column] > pearson_r_threshold)]
 
     response_cols = [col for col in stock.columns if col not in features_cols and "Date" not in col]
-    features_cols = [col for col in features_cols if col not in to_drop]
+    features_cols = [col for col in features.columns]
 
     return [stock, experiment_config, response_cols, features_cols]
