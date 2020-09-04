@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import os
+import json
 import pandas as pd
-
+import functools
+import seaborn as sns
 
 def saving_results(experiment_name, response_period_experiment_list, model_results_dict, experiment_config,
                    param_dict):
@@ -31,6 +33,10 @@ def saving_results(experiment_name, response_period_experiment_list, model_resul
     f.write(f"Technical Indicators config\n{str(param_dict)}\n")
     f.close()
 
+    x = dict((key, str(value)) for key, value in model_results_dict.items())
+    with open(results_data_describe + "experiment_dict.txt", "w") as outfile:
+        json.dump(x, outfile)
+
     experiment_config['describe_dataframe_inicial'].to_csv(
         path_or_buf=results_data_describe + "describe_dataframe_inicial")
     experiment_config['describe_dataframe_after_calculations'].to_csv(
@@ -39,6 +45,26 @@ def saving_results(experiment_name, response_period_experiment_list, model_resul
     experiment_config['describe_X_test'].to_csv(path_or_buf=results_data_describe + "describe_X_test")
     experiment_config['describe_y_train'].to_csv(path_or_buf=results_data_describe + "describe_y_train")
     experiment_config['describe_y_test'].to_csv(path_or_buf=results_data_describe + "describe_y_test")
+
+    # Salvando feature importances
+    feature_importances = []
+    i = 1
+    for feat_imp_dict in model_results_dict["RANDOM FOREST"]["feature_importance"]:
+        names = []
+        values = []
+        for name, value in feat_imp_dict.items():
+            names.append(name)
+            values.append(value)
+        feature_importances.append(pd.Series(data=values, index=names, name=f"response_{i}").to_frame())
+        i += 1
+    feature_importance = pd.concat(feature_importances, axis=1)
+    feature_importance.to_csv(path_or_buf=results_data_describe + "feature_importances.csv")
+    to_plot = feature_importance.T.reset_index(drop=True)
+    print(to_plot)
+    fig, ax = plt.subplots()
+    to_plot.plot(kind="line", ax=ax)
+    ax.legend(loc='upper left')
+    fig.savefig(results_figure_paths + "feature_importance.png")
 
     # Salvando Resultados dos Modelos
     for model_name in model_results_dict.keys():
@@ -52,38 +78,27 @@ def saving_results(experiment_name, response_period_experiment_list, model_resul
         f.close()
 
 
-        fig1, ax1 = plt.subplots()
-        fig2, ax2 = plt.subplots()
+        for metric in ["Accuracy", "F1", "Recall", "Precision"]:
+            metric_upper = metric.upper()
+            fig1, ax1 = plt.subplots()
+            ax1.plot(response_period_experiment_list, model_results_dict[model_name][f"TRAIN_{metric_upper}"],
+                     label=f"Train {metric}", color='blue')
+            ax1.plot(response_period_experiment_list, model_results_dict[model_name][f"TEST_{metric_upper}"],
+                     label=f"Test {metric}", color='red')
 
-        if "AUC" in list(model_results_dict[model_name].keys()):
-            ax1.plot(response_period_experiment_list, model_results_dict[model_name]["AUC"], label="AUC", color='olive')
+            ax1.set(
+                xlabel='Quantidade de dias Seguintes os quais a Variável resposta foi avaliada',
+                ylabel='Valor da Métrica',
+                title=f'{model_name} - {metric}'
+            )
+            ax1.grid()
+            ax1.legend()
+            fig1.savefig(results_figure_paths + f"{model_name}/{metric}.png")
 
-        if "ACCURACY" in list(model_results_dict[model_name].keys()):
-            ax1.plot(response_period_experiment_list, model_results_dict[model_name]["ACCURACY"], label="Accuracy", color='orange')
-
-        ax1.set(
-            xlabel='Quantidade de dias Seguintes os quais a Variável resposta foi avaliada',
-            ylabel='Valor da Métrica',
-            title=f'{model_name} - AUC e Accuracy'
-        )
-        ax1.grid()
-        ax1.legend()
-        ax2.plot(response_period_experiment_list, model_results_dict[model_name]["F1"], label="F1", color='purple')
-        ax2.plot(response_period_experiment_list, model_results_dict[model_name]["RECALL"], label="Recall",
-                 color='blue')
-        ax2.plot(response_period_experiment_list, model_results_dict[model_name]["PRECISION"], label="Precision",
-                 color='red')
-        ax2.set(
-            xlabel='Quantidade de dias Seguintes os quais a Variável resposta foi avaliada',
-            ylabel='Valor da Métrica',
-            title=f'{model_name} - F1, Precision e Recall'
-        )
-        ax2.grid()
-        ax2.legend()
-        fig1.savefig(results_figure_paths + f"{model_name}/auc_accuracy.png")
-        fig2.savefig(results_figure_paths + f"{model_name}/f1_precision_recall.png")
 
         model_results_dict[model_name].pop('model', None)
-
+        model_results_dict[model_name].pop('best_model', None)
+        model_results_dict[model_name].pop('param_grid', None)
+        model_results_dict[model_name].pop('feature_importance', None)
         pd.DataFrame.from_dict(model_results_dict[model_name]).to_csv(
-            path_or_buf=results_figure_paths + f"{model_name}/results_table")
+            path_or_buf=results_figure_paths + f"{model_name}/results_table.csv")

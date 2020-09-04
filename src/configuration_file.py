@@ -67,6 +67,6 @@ response_period_experiment_list = list(range(1, 101))
 filter_date_greater_than = "1998-01-01"
 test_period = "2016-01-01"
 
-pearson_r_threshold = 0.8
+pearson_r_threshold = 0.9
 
-experiment_name = "02"
+experiment_name = "07"
