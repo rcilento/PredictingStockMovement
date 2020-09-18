@@ -31,11 +31,18 @@ class StockOperations:
         if volume_col != "Volume":
             df["Volume"] = df[volume_col]
             df = df.drop(volume_col)
-
-        df["Date"] = pd.to_datetime(df[date_col])
         if date_col != "Date":
             df = df.drop(date_col)
-        return df
+
+        cast_dict = {
+            "Close": 'float64',
+             "High": 'float64',
+             "Low": 'float64',
+             "Volume": 'float64',
+             "Date": 'datetime64[ns, US/Eastern]'
+         }
+
+        return df.astype(cast_dict)
 
     @staticmethod
     def drop_extra_cols(df):
@@ -110,21 +117,19 @@ class StockOperations:
         if weighted_average_param.get("calculate", False):
             df = StockOperations._generate_weighted_moving_average(df, weighted_average_param.get("periods", []))
 
-
-
         return df
 
     @staticmethod
     def _generate_macd_col(obj, compare_with_signal):
-        list_of_needed_means = [9, 12, 26]
+        list_of_needed_means = [12, 26]
         mean_dict = {}
         for mean in list_of_needed_means:
-            mean_col = obj.Close.ewm(span=mean, min_periods=mean).mean()
+            mean_col = obj.Close.ewm(span=mean, min_periods=0, adjust=False, ignore_na=False).mean()
             mean_dict[mean] = mean_col
         obj["macd"] = mean_dict[12] - mean_dict[26]
-        obj["macd_signal"] = obj["macd"] / mean_dict[9]
+        obj["macd_signal"] = obj.macd.ewm(span=9, min_periods=0, adjust=False, ignore_na=False).mean()
         if compare_with_signal:
-            obj["macd_vs_sinal"] = obj["macd_signal"] / obj["macd_signal"]
+            obj["macd_vs_sinal"] = obj["macd"] - obj["macd_signal"]
         return obj
 
     @staticmethod
@@ -133,8 +138,6 @@ class StockOperations:
         obj.loc[obj.Close > yesterday_close, 'aux'] = obj.Volume
         obj.loc[obj.Close <= yesterday_close, 'aux'] = -obj.Volume
 
-        #gains = np.where(obj.Close > yesterday_close, 1, 0)
-        #aux = np.where(gains > 0, obj.Volume, -obj.Volume)
         obj["obv"] = pd.Series(obj.aux.cumsum())
         return obj.drop(columns=["aux"])
 

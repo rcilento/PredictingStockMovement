@@ -1,10 +1,14 @@
-param_dict = {
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import LinearSVC
+from sklearn.dummy import DummyClassifier
+
+PARAM_DICT = {
     "macd": {
         "calculate": True,
         "compare_macd_with_signal": True
     },
     "obv": {
-        "calculate": True
+        "calculate": False
     },
     "williams": {
         "calculate": True,
@@ -60,13 +64,36 @@ param_dict = {
     },
 }
 
-file_path = "data/BVSP.csv"
+PREDICTORS = {
+    "SVM C=0.4": LinearSVC(random_state=0, max_iter=100000, C=0.4),
+    "SVM C=0.5": LinearSVC(random_state=0, max_iter=100000, C=0.5),
+    "SVM C=0.6": LinearSVC(random_state=0, max_iter=100000, C=0.6),
+    "SVM C=0.8": LinearSVC(random_state=0, max_iter=100000, C=0.8),
+    "SVM C=1": LinearSVC(random_state=0, max_iter=100000, C=1),
+    "SVM C=2": LinearSVC(random_state=0, max_iter=100000, C=2),
+    "SVM C=4": LinearSVC(random_state=0, max_iter=100000, C=4),
+    "RANDOM FOREST min_samples_leaf=100": RandomForestClassifier(n_estimators=101, random_state=0,
+                                                                 min_samples_leaf=100),
+    "RANDOM FOREST min_samples_leaf=150": RandomForestClassifier(n_estimators=101, random_state=0,
+                                                                 min_samples_leaf=150),
+    "RANDOM FOREST min_samples_leaf=200": RandomForestClassifier(n_estimators=101, random_state=0,
+                                                                 min_samples_leaf=200),
+    "RANDOM FOREST min_samples_leaf=250": RandomForestClassifier(n_estimators=101, random_state=0,
+                                                                 min_samples_leaf=250),
+    "RANDOM FOREST min_samples_leaf=300": RandomForestClassifier(n_estimators=101, random_state=0,
+                                                                 min_samples_leaf=30),
+    "Dummy Classifier": DummyClassifier(random_state=0)
+}
 
-response_period_experiment_list = list(range(1, 101))
+FILE_PATH = "data/BVSP.csv"
 
-filter_date_greater_than = "1998-01-01"
-test_period = "2016-01-01"
+RESPONSE_PERIOD_EXPERIMENT_LIST = list(range(1, 101))
 
-pearson_r_threshold = 0.9
+ONLY_DAYS_WITH_VOLUME = True
 
-experiment_name = "07"
+FILTER_DATE_GREATER_THAN = "2006-08-01"
+
+PEARSON_R_THRESHOLD = 0.8
+
+EXPERIMENT_NAME = "10"
+
