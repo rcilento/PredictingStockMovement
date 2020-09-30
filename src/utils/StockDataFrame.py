@@ -146,12 +146,12 @@ class StockOperations:
 
         for period in periods:
             numerador = (
-                    obj.High.rolling(window=period, min_periods=period).max()
+                    obj.High.rolling(window=period, min_periods=0).max()
                     - obj.Close
             )
             denominador = (
-                    obj.High.rolling(window=period, min_periods=period).max()
-                    - obj.Low.rolling(window=period, min_periods=period).min()
+                    obj.High.rolling(window=period, min_periods=0).max()
+                    - obj.Low.rolling(window=period, min_periods=0).min()
             )
             obj[f"williams_{period}"] = (numerador / denominador) * (-100)
 
@@ -170,8 +170,8 @@ class StockOperations:
             yesterday_close = obj.Close.shift(1)
             gains = pd.Series(np.where(obj.Close > yesterday_close, obj.Close - yesterday_close, 0))
             losses = pd.Series(np.where(obj.Close < yesterday_close, yesterday_close - obj.Close, 0))
-            gain_avg_col = gains.rolling(window=period, min_periods=period).mean()
-            loss_avg_col = losses.rolling(window=period, min_periods=period).mean()
+            gain_avg_col = gains.rolling(window=period, min_periods=0).mean()
+            loss_avg_col = losses.rolling(window=period, min_periods=0).mean()
             rs = gain_avg_col / loss_avg_col
             rsi = 100 / (1 + rs)
             obj[f"rsi_{period}"] = rsi
@@ -182,12 +182,12 @@ class StockOperations:
         for period in periods:
             numerador = (
                     obj.Close
-                    - obj.Low.rolling(window=period, min_periods=period).min()
+                    - obj.Low.rolling(window=period, min_periods=0).min()
             )
 
             denominador = (
-                    obj.High.rolling(window=period, min_periods=period).max()
-                    - obj.Low.rolling(window=period, min_periods=period).min()
+                    obj.High.rolling(window=period, min_periods=0).max()
+                    - obj.Low.rolling(window=period, min_periods=0).min()
             )
 
             obj[f"stochastic_oscillator_{period}"] = numerador / denominador
@@ -207,9 +207,9 @@ class StockOperations:
     @staticmethod
     def _generate_accumulation_distribution_oscillator(obj, periods):
         for period in periods:
-            period_min = obj.Low.rolling(window=period, min_periods=period).min()
-            period_max = obj.High.rolling(window=period, min_periods=period).max()
-            cmfv = obj.Volume * (((obj.Close - period_min) - (period_max- obj.Close)) / (period_max - period_min))
+            period_min = obj.Low.rolling(window=period, min_periods=0).min()
+            period_max = obj.High.rolling(window=period, min_periods=0).max()
+            cmfv = obj.Volume * (((obj.Close - period_min) - (period_max - obj.Close)) / (period_max - period_min))
             obj[f"accumulation_distribution_{period}"] = pd.Series(cmfv.cumsum())
         return obj
 
@@ -217,13 +217,13 @@ class StockOperations:
     def _generate_commodity_channel_index(obj, periods):
         for period in periods:
             typical_price = (
-                obj.Low.rolling(window=period, min_periods=period).sum()
-                + obj.High.rolling(window=period, min_periods=period).sum()
-                + obj.Close.rolling(window=period, min_periods=period).sum()
-            )
-            ma = typical_price / period
+                obj.Low.rolling(window=period, min_periods=0).sum()
+                + obj.High.rolling(window=period, min_periods=0).sum()
+                + obj.Close.rolling(window=period, min_periods=0).sum()
+            ) / 3
+            ma = typical_price.rolling(window=period, min_periods=0).sum() / period
             aux = typical_price - ma
-            mean_deviation = aux / period
+            mean_deviation = abs(aux / period)
             obj[f"commodity_channel_{period}"] = aux/(0.015 * mean_deviation)
         return obj
 
@@ -249,14 +249,14 @@ class StockOperations:
     def _generate_moving_average_comparison(obj, periods):
         for period in periods:
             obj[f"moving_average_comparison_{period}"] = \
-                obj.Close / obj.Close.rolling(span=period, min_periods=period).mean()
+                obj.Close / obj.Close.rolling(span=period, min_periods=0).mean()
         return obj
 
     @staticmethod
     def _generate_exponential_moving_average_comparison(obj, periods):
         for period in periods:
             obj[f"exponential_moving_average_comparison_{period}"] = \
-                obj.Close / obj.Close.ewm(span=period, min_periods=period).mean()
+                obj.Close / obj.Close.ewm(span=period, min_periods=0, adjust=False, ignore_na=False).mean()
         return obj
 
     @staticmethod

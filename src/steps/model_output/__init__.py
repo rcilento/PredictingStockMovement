@@ -1,2 +1,5 @@
 from .joining_lines import joining_lines
 from .saving_results import saving_results
+from .find_best_model import find_best_model
+from .get_best_predictors import get_best_predictors
+from .get_predictors_kde_and_scatters import get_predictors_kde_and_scatters

@@ -1,6 +1,4 @@
 from utils import StockOperations, matrix_correlation_filter
-import matplotlib.pyplot as plt
-import pandas as pd
 from src.utils import save_info
 
 
@@ -23,4 +21,4 @@ def building_features(ingested_data, param_dict):
 
     stock = stock.set_index("Date")
 
-    return stock[features_cols]
+    return stock

@@ -21,6 +21,7 @@ def save_info(info, info_type, name):
     if info_type == "dataframe":
         info.to_csv(path_or_buf=name)
     elif info_type == "figure":
+        info.tight_layout()
         info.savefig(name)
     elif info_type == "json":
         with open(name, "w") as outfile:
